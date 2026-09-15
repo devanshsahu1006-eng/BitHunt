@@ -1,0 +1,228 @@
+/* ==========================================================================
+   BitHunt Centralized Typography System
+   Inspired by Classical Roman Inscriptional & Chiseled Metallic Letterforms
+   (Cinzel / Marcellus display pairing with clean Inter editorial body)
+   ========================================================================== */
+
+:root {
+  --font-inscriptional: 'Cinzel', 'Marcellus', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', Menlo, Monaco, Courier New, monospace;
+}
+
+/* Base Body Typography Reset */
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  color: #cbd5e1; /* metallic-200 */
+}
+
+/* ==========================================================================
+   1. BIT HUNT LOGOTYPE
+   Monumental scale, tight controlled kerning, metallic chiseled bevel,
+   and restrained ambient emerald bounce (strictly NO cheap neon blur)
+   ========================================================================== */
+.logotype-bithunt {
+  font-family: var(--font-inscriptional);
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 0.92;
+  text-transform: uppercase;
+  
+  /* Subtle metallic titanium surface gradient */
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f1f5f9 22%,
+    #cbd5e1 52%,
+    #94a3b8 78%,
+    #64748b 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Physical chiseled edge relief and ambient bounce */
+  filter: 
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 10px 30px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 25px rgba(0, 229, 117, 0.14));
+
+  transition: filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.logotype-bithunt:hover {
+  filter: 
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 1))
+    drop-shadow(0 14px 36px rgba(0, 0, 0, 0.9))
+    drop-shadow(0 0 35px rgba(0, 229, 117, 0.25));
+}
+
+/* Custom controlled gap between BIT and HUNT */
+.logotype-spacer {
+  display: inline-block;
+  width: 0.28em;
+}
+
+/* ==========================================================================
+   2. DISPLAY & HEADINGS
+   ========================================================================== */
+
+/* Monumental Display (Section titles, Major anchors) */
+.heading-display-xl {
+  font-family: var(--font-inscriptional);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.heading-display-lg {
+  font-family: var(--font-inscriptional);
+  font-weight: 600;
+  letter-spacing: 0.045em;
+  line-height: 1.15;
+  color: #ffffff;
+}
+
+.heading-display-md {
+  font-family: var(--font-inscriptional);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1.25;
+  color: #f1f5f9;
+}
+
+.heading-display-sm {
+  font-family: var(--font-inscriptional);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  color: #cbd5e1;
+}
+
+/* Subtle Chiseled Metallic Fill for Headings */
+.text-chiseled-metallic {
+  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 45%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+/* Secondary Subtitles */
+.subtitle-inscriptional {
+  font-family: var(--font-inscriptional);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8; /* metallic-300 */
+}
+
+/* Eyebrow Labels (e.g. "TEAM PARSEC · IIT DHARWAD") */
+.eyebrow-inscriptional {
+  font-family: var(--font-inscriptional);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #64748b; /* metallic-400 */
+}
+
+/* Monumental Quote / Philosophy */
+.quote-inscriptional {
+  font-family: var(--font-inscriptional);
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0.025em;
+  color: #f1f5f9;
+}
+
+/* ==========================================================================
+   3. EDITORIAL BODY & NARRATIVE
+   Clean, highly readable Inter sans with generous, comfortable line heights
+   ========================================================================== */
+.body-editorial {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.75;
+  letter-spacing: -0.01em;
+  color: #94a3b8; /* metallic-300 */
+  font-weight: 400;
+}
+
+.body-editorial-lead {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  letter-spacing: -0.015em;
+  color: #cbd5e1; /* metallic-200 */
+  font-weight: 400;
+}
+
+.body-clean {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: #64748b; /* metallic-400 */
+  font-weight: 400;
+}
+
+/* ==========================================================================
+   4. INSCIPTIONAL ACTIONS & CTAS
+   ========================================================================== */
+.btn-inscriptional {
+  font-family: var(--font-inscriptional);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   5. CINEMATIC TEXT ANIMATIONS
+   Blur-to-sharp emergence, dignified slow fade, zero aggressive glitches
+   ========================================================================== */
+@keyframes cinematicTextEmergence {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(14px);
+    letter-spacing: 0.07em;
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+    letter-spacing: 0.035em;
+  }
+}
+
+.animate-cinematic-emerge {
+  animation: cinematicTextEmergence 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, filter, transform;
+}
+
+@keyframes cinematicSubtitleEmergence {
+  0% {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+}
+
+.animate-cinematic-subtle {
+  animation: cinematicSubtitleEmergence 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+  opacity: 0;
+  will-change: opacity, filter, transform;
+}
