@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+1import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Skull, User, Mail, Lock, School, Users, Shield, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
