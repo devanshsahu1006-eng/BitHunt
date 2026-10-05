@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Developer Control Panel</h2>
+    <div>
+        <form action="{{ url_for('mark_all_present') }}" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-outline-dark fw-semibold me-2">📍 Mark All Teams Present</button>
+        </form>
+        <form action="{{ url_for('advance_all_teams') }}" method="POST" class="d-inline" onsubmit="return confirm('Promote ALL Round 1 teams to Round 2? (Their timers will not start until they click Play).');">
+            <button type="submit" class="btn btn-warning fw-semibold me-2">⏩ Advance All to R2</button>
+        </form>
+        <a href="{{ url_for('add_question') }}" class="btn btn-success fw-semibold">+ Add Question</a>
+    </div>
+</div>
+
+<!-- Master Round Switches -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3 mb-md-0">
+        <div class="card shadow-sm border-{{ 'success' if config.round_1_active else 'secondary' }}">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-1">Round 1 Master Access</h5>
+                    <span class="badge bg-{{ 'success' if config.round_1_active else 'secondary' }}">
+                        {{ '🟢 UNLOCKED (Teams Can Play)' if config.round_1_active else '🔒 LOCKED (Waiting)' }}
+                    </span>
+                </div>
+                <form action="{{ url_for('toggle_round', round_num=1) }}" method="POST">
+                    <button type="submit" class="btn btn-{{ 'danger' if config.round_1_active else 'success' }} fw-semibold">
+                        {{ 'Lock Round 1' if config.round_1_active else 'Unlock Round 1' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-{{ 'success' if config.round_2_active else 'secondary' }}">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-1">Round 2 Master Access</h5>
+                    <span class="badge bg-{{ 'success' if config.round_2_active else 'secondary' }}">
+                        {{ '🟢 UNLOCKED (Teams Can Play)' if config.round_2_active else '🔒 LOCKED (Waiting)' }}
+                    </span>
+                </div>
+                <form action="{{ url_for('toggle_round', round_num=2) }}" method="POST">
+                    <button type="submit" class="btn btn-{{ 'danger' if config.round_2_active else 'success' }} fw-semibold">
+                        {{ 'Lock Round 2' if config.round_2_active else 'Unlock Round 2' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disqualified Users Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🚫 Disqualified Participants</h5>
+                <span class="badge bg-light text-danger">{{ disqualified_users|length }} Disqualified</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Team</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in disqualified_users %}
+                            <tr>
+                                <td class="fw-bold text-danger">{{ user.name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.team.name if user.team else 'No Team' }}</td>
+                                <td class="text-end">
+                                    <form action="{{ url_for('pardon_user', user_id=user.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Pardon & Restore</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No disqualified participants right now.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Registered Teams Table -->
+    <div class="col-lg-7 mb-4">
+        <h4 class="mb-3">Registered Teams & Venue Attendance</h4>
+        <div class="table-responsive bg-white shadow-sm rounded">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Team</th>
+                        <th>Venue Status</th>
+                        <th>Rnd</th>
+                        <th>Timer</th>
+                        <th>Scores (R1/R2)</th>
+                        <th class="text-end">Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team in teams %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ team.name }}</div>
+                            <small class="text-muted">{{ team.members|length }}/4 members</small>
+                        </td>
+                        <td>
+                            <form action="{{ url_for('toggle_presence', team_id=team.id) }}" method="POST" class="d-inline">
+                                {% if team.is_present %}
+                                    <button type="submit" class="btn btn-sm btn-success" title="Click to mark Absent">✅ Present</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Click to mark Present">❌ Absent</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'primary' if team.current_round == 1 else 'info text-dark' }}">
+                                R{{ team.current_round }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if team.round_start_time %}
+                                <span class="badge bg-warning text-dark">Started</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Not Started</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ team.round_1_score }} / {{ team.round_2_score }}</td>
+                        <td class="text-end">
+                            {% if team.current_round == 1 %}
+                            <form action="{{ url_for('advance_team', team_id=team.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-primary">Move to R2 ➔</button>
+                            </form>
+                            {% else %}
+                            <span class="badge bg-secondary">In R2</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-3">No teams registered yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Questions Table -->
+    <div class="col-lg-5 mb-4">
+        <h4 class="mb-3">Hunt Questions</h4>
+        <div class="table-responsive bg-white shadow-sm rounded">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Rnd</th>
+                        <th>Content</th>
+                        <th>Ans</th>
+                        <th>Pts</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in questions %}
+                    <tr>
+                        <td><span class="badge bg-dark">R{{ q.round_number }}</span></td>
+                        <td class="text-truncate" style="max-width: 130px;" title="{{ q.content }}">{{ q.content }}</td>
+                        <td><span class="badge bg-success">{{ q.correct_option }}</span></td>
+                        <td>{{ q.points }}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('edit_question', q_id=q.id) }}" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                            <form action="{{ url_for('delete_question', q_id=q.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this question permanently?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Del</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center text-muted py-3">No questions added yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

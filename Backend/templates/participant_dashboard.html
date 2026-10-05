@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block content %}
+
+{% if team %}
+    {% set round_unlocked = (team.current_round == 1 and config.round_1_active) or (team.current_round == 2 and config.round_2_active) %}
+    {% set can_play = team.is_present and round_unlocked %}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold mb-2">Team: {{ team.name }}</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-dark fs-6">Assigned: Round {{ team.current_round }}</span>
+            {% if team.is_present %}
+                <span class="badge bg-success fs-6">📍 Venue Check-In: Verified Present</span>
+            {% else %}
+                <span class="badge bg-danger fs-6">📍 Venue Check-In: Not Marked Present</span>
+            {% endif %}
+
+            {% if round_unlocked %}
+                <span class="badge bg-success fs-6">🟢 Round {{ team.current_round }} is Open</span>
+            {% else %}
+                <span class="badge bg-secondary fs-6">🔒 Round {{ team.current_round }} Locked by Organizer</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex align-items-center justify-content-md-end">
+        {% if can_play %}
+            <a href="{{ url_for('play_round') }}" class="btn btn-primary btn-lg px-5 shadow">
+                {{ 'Resume Round ' ~ team.current_round if team.round_start_time else 'Start Round ' ~ team.current_round }}
+            </a>
+        {% else %}
+            <button class="btn btn-secondary btn-lg px-4" disabled>
+                🔒 Waiting for Access
+            </button>
+        {% endif %}
+    </div>
+</div>
+<hr>
+
+<div class="row">
+    <!-- Scores Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card text-center shadow-sm h-100">
+            <div class="card-header bg-dark text-white fw-semibold">Team Scores</div>
+            <div class="card-body d-flex justify-content-around align-items-center">
+                <div>
+                    <h6 class="text-muted">Round 1</h6>
+                    <h2 class="text-primary fw-bold">{{ team.round_1_score }}</h2>
+                </div>
+                <div>
+                    <h6 class="text-muted">Round 2</h6>
+                    <h2 class="text-success fw-bold">{{ team.round_2_score }}</h2>
+                </div>
+                <div>
+                    <h6 class="text-muted">Total</h6>
+                    <h2 class="text-dark fw-bold">{{ team.total_score }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Team Roster & Controls -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Team Members ({{ team.members|length }}/4)</span>
+                <form action="{{ url_for('leave_team') }}" method="POST" onsubmit="return confirm('Are you sure you want to leave this team?');">
+                    <button type="submit" class="btn btn-sm btn-warning">Leave Team</button>
+                </form>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for member in team.members %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            {{ member.name }}
+                            {% if member.id == team.leader_id %}
+                                <span class="badge bg-warning text-dark ms-1">👑 Leader</span>
+                            {% endif %}
+                            {% if member.id == current_user.id %}
+                                <span class="badge bg-primary ms-1">You</span>
+                            {% endif %}
+                            {% if member.is_disqualified %}
+                                <span class="badge bg-danger ms-1">Disqualified</span>
+                            {% endif %}
+                        </div>
+
+                        {% if current_user.id == team.leader_id and member.id != current_user.id %}
+                            <form action="{{ url_for('remove_member', member_id=member.id) }}" method="POST" onsubmit="return confirm('Remove {{ member.name }} from the team?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Shown if participant left their team or was removed -->
+<div class="row justify-content-center my-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-warning">
+            <div class="card-header bg-warning text-dark fw-bold">You are not currently in a team</div>
+            <div class="card-body">
+                <p class="text-muted">Enter an existing team's name to join them (up to 4 members), or enter a new name to create a team and become its leader.</p>
+                {{ render_form(join_form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Danger Zone: Delete Account -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold text-danger mb-1">Withdraw from Event (Delete Account)</h6>
+                    <small class="text-muted">Permanently deletes your account and removes you from your team.</small>
+                </div>
+                <form action="{{ url_for('delete_account') }}" method="POST" onsubmit="return confirm('Permanently delete your account from Bithunt? This cannot be undone.');">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete My Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

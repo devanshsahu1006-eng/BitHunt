@@ -1,17 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import {
-  Clock,
-  ArrowRight,
-  LogOut,
-  CheckCircle2,
-  FileCode,
-  Calendar,
-  Sparkles,
-  ShieldCheck,
-} from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { EVENT_DATA } from '../../api/event';
 
 export const DashboardPage = () => {
   const { user, logout } = useAuth();

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block content %}
+
+<!-- Fullscreen Overlay -->
+<div id="fullscreen-overlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark d-flex flex-column justify-content-center align-items-center" style="z-index: 1050;">
+    <div class="text-center text-white px-3">
+        <h1 class="display-4 mb-4 fw-bold">🔒 Anti-Cheat Enabled</h1>
+        <p class="lead mb-4">You must remain in full-screen mode during the round.<br>Exiting full-screen or switching tabs/windows will immediately disqualify <strong>you</strong> (your teammates can continue).</p>
+        <button id="start-btn" class="btn btn-primary btn-lg px-5 shadow">Enter Full-Screen to Play</button>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="badge bg-secondary fs-6 me-1">Round {{ team.current_round }}</span>
+                <span class="badge bg-primary fs-6">Question {{ team.current_question_index + 1 }}</span>
+            </div>
+            <span class="badge bg-danger fs-5 px-3 py-2 shadow-sm" id="timer-badge">
+                ⏳ <span id="time-display">--:--</span>
+            </span>
+            <span class="badge bg-info text-dark fs-6">Worth: {{ question.points }} pts</span>
+        </div>
+
+        <div class="card shadow border-dark">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Challenge</h5>
+            </div>
+            <div class="card-body" id="question-form-container">
+                <p class="fs-4 mb-4">{{ question.content }}</p>
+                <hr>
+                <div class="alert alert-info py-2">
+                    <small>⚡ <strong>Live Team Sync:</strong> If a teammate submits an answer, your screen will automatically advance to the next question.</small>
+                </div>
+                {{ render_form(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isPlaying = false;
+    // Wrapped in quotes so the JS linter doesn't mistake Jinja {{ }} for a JS object
+    let remainingSeconds = Number("{{ remaining_seconds }}");
+    const checkUpdateUrl = "{{ url_for('check_update', current_index=team.current_question_index) }}";
+    const endRoundUrl = "{{ url_for('end_round_early') }}";
+
+    const overlay = document.getElementById('fullscreen-overlay');
+    const startBtn = document.getElementById('start-btn');
+    const formContainer = document.getElementById('question-form-container');
+    const timeDisplay = document.getElementById('time-display');
+
+    // --- 1. COUNTDOWN TIMER ---
+    function updateTimerDisplay() {
+        const mins = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
+        timeDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+    updateTimerDisplay();
+
+    setInterval(() => {
+        if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateTimerDisplay();
+            if (remainingSeconds <= 0) {
+                isPlaying = false;
+                window.location.reload(); // Reloads and triggers server-side time expiration lock
+            }
+        }
+    }, 1000);
+
+    // Disable anti-cheat when submitting the form normally
+    if (formContainer) {
+        const formElement = formContainer.querySelector('form');
+        if (formElement) {
+            formElement.addEventListener('submit', () => {
+                isPlaying = false;
+            });
+        }
+    }
+
+    // --- 2. LIVE TEAM SYNC (AUTO-REFRESH EVERY 3 SECONDS) ---
+    setInterval(() => {
+        fetch(checkUpdateUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.updated) {
+                isPlaying = false;
+                window.location.reload(); 
+            }
+        })
+        .catch(err => console.error("Sync check failed:", err));
+    }, 3000);
+
+    // --- 3. INDIVIDUAL ANTI-CHEAT ---
+    startBtn.addEventListener('click', () => {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().then(() => {
+                overlay.classList.add('d-none');
+                isPlaying = true;
+            }).catch(err => {
+                alert("Could not enter full-screen mode. Please allow full-screen permissions.");
+            });
+        }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        if (isPlaying && !document.fullscreenElement) {
+            triggerAntiCheat();
+        }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (isPlaying && document.visibilityState === 'hidden') {
+            triggerAntiCheat();
+        }
+    });
+
+    function triggerAntiCheat() {
+        isPlaying = false; 
+        fetch(endRoundUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        }).then(() => {
+            window.location.reload();
+        });
+    }
+</script>
+{% endblock %}

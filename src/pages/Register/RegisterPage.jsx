@@ -1,19 +1,17 @@
-1import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Skull, User, Mail, Lock, School, Users, Shield, ArrowRight } from 'lucide-react';
+import { Skull, User, Mail, Lock, Phone, Users, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { CyberButton } from '../../components/common/CyberButton';
 import { GlassCard } from '../../components/common/GlassCard';
-import { EVENT_DATA } from '../../api/event';
 
 export const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    college: 'IIT Dharwad',
+    phone: '',
     teamName: '',
-    faction: 'The Strategist'
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,23 +25,29 @@ export const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
+    if (formData.phone.length !== 10 || !/^\d+$/.test(formData.phone)) {
+      setError('Phone number must be exactly 10 digits.');
+      return;
+    }
+    if (formData.password.length <= 8) {
+      setError('Password must be more than 8 characters.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      // =========================================================================
-      // BACKEND INTEGRATION POINT
-      // Flask endpoint expected:
-      // POST /api/auth/register
-      // Body: { name, email, password, college, teamName, faction }
-      // =========================================================================
       await register(formData);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Registration rejected by Citadel protocol');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  const inputClass =
+    'w-full px-3.5 py-2 rounded bg-doom-900/80 border border-doom-500/30 text-sm text-white focus:outline-none focus:border-doom-plasma font-mono';
 
   return (
     <div className="min-h-screen pt-28 pb-16 px-4 flex items-center justify-center relative">
@@ -75,6 +79,7 @@ export const RegisterPage = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name + Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-mono text-metallic-300 uppercase flex items-center gap-1.5">
@@ -87,7 +92,7 @@ export const RegisterPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-3.5 py-2 rounded bg-doom-900/80 border border-doom-500/30 text-sm text-white focus:outline-none focus:border-doom-plasma font-mono"
+                  className={inputClass}
                   placeholder="e.g. Victor Von Coder"
                 />
               </div>
@@ -103,12 +108,13 @@ export const RegisterPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-3.5 py-2 rounded bg-doom-900/80 border border-doom-500/30 text-sm text-white focus:outline-none focus:border-doom-plasma font-mono"
-                  placeholder="hunter@earth616.org"
+                  className={inputClass}
+                  placeholder="hunter@iitdh.ac.in"
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div className="space-y-1.5">
               <label className="text-xs font-mono text-metallic-300 uppercase flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-doom-plasma" />
@@ -120,25 +126,27 @@ export const RegisterPage = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2 rounded bg-doom-900/80 border border-doom-500/30 text-sm text-white focus:outline-none focus:border-doom-plasma font-mono"
-                placeholder="••••••••••••"
+                className={inputClass}
+                placeholder="More than 8 characters"
               />
             </div>
 
+            {/* Phone + Team */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-mono text-metallic-300 uppercase flex items-center gap-1.5">
-                  <School className="w-3.5 h-3.5 text-doom-plasma" />
-                  <span>Institution</span>
+                  <Phone className="w-3.5 h-3.5 text-doom-plasma" />
+                  <span>Phone (10 digits)</span>
                 </label>
                 <input
-                  type="text"
+                  type="tel"
                   required
-                  name="college"
-                  value={formData.college}
+                  name="phone"
+                  maxLength={10}
+                  value={formData.phone}
                   onChange={handleChange}
-                  className="w-full px-3.5 py-2 rounded bg-doom-900/80 border border-doom-500/30 text-sm text-white focus:outline-none focus:border-doom-plasma font-mono"
-                  placeholder="IIT Dharwad"
+                  className={inputClass}
+                  placeholder="9876543210"
                 />
               </div>
 
@@ -153,29 +161,10 @@ export const RegisterPage = () => {
                   name="teamName"
                   value={formData.teamName}
                   onChange={handleChange}
-                  className="w-full px-3.5 py-2 rounded bg-doom-900/80 border border-doom-500/30 text-sm text-white focus:outline-none focus:border-doom-plasma font-mono"
+                  className={inputClass}
                   placeholder="e.g. Parsec Protocol"
                 />
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-mono text-metallic-300 uppercase flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-doom-plasma" />
-                <span>Doomsday Codex Alignment</span>
-              </label>
-              <select
-                name="faction"
-                value={formData.faction}
-                onChange={handleChange}
-                className="w-full px-3.5 py-2 rounded bg-doom-900/80 border border-doom-500/30 text-sm text-white focus:outline-none focus:border-doom-plasma font-mono"
-              >
-                {EVENT_DATA.dossierFactions.map((f) => (
-                  <option key={f.id} value={f.name}>
-                    {f.name} ({f.role})
-                  </option>
-                ))}
-              </select>
             </div>
 
             <CyberButton

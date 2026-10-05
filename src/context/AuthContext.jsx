@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '../api/auth';
-import { getAuthToken } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -8,24 +7,32 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Check active session on mount via /api/auth/me
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
       try {
-        const token = getAuthToken();
-        if (token) {
-          const currentUser = await authApi.getCurrentUser();
-          if (currentUser) {
-            setUser(currentUser);
-          }
+        const currentUser = await authApi.getCurrentUser();
+        if (isMounted) {
+          setUser(currentUser || null);
         }
       } catch (err) {
-        console.error('Auth verification error:', err);
+        if (isMounted) {
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     checkAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (email, password) => {

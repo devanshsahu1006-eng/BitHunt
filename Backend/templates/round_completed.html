@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 text-center">
+        <div class="card shadow border-{{ 'danger' if time_expired else 'success' }}">
+            <div class="card-body py-5">
+                <h1 class="display-4 mb-3">{{ '⏰' if time_expired else '🎉' }}</h1>
+                <h2 class="fw-bold">{{ 'Time Expired!' if time_expired else 'Round ' ~ team.current_round ~ ' Completed!' }}</h2>
+                <p class="lead text-muted mt-3">
+                    {% if time_expired %}
+                        Your team's timer for Round {{ team.current_round }} has run out. All previous submissions have been saved.
+                    {% else %}
+                        Your team has answered all questions available for Round {{ team.current_round }}.
+                    {% endif %}
+                </p>
+                <hr class="w-50 mx-auto my-4">
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('participant_dashboard') }}" class="btn btn-primary btn-lg">Team Dashboard</a>
+                    <a href="{{ url_for('leaderboard') }}" class="btn btn-outline-dark btn-lg">View Leaderboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
